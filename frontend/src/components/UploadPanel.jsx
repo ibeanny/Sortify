@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 function UploadPanel({ selectedFile, onFileChange, onUpload, loading }) {
     return (
         <div className="upload-panel">
@@ -23,7 +25,14 @@ function UploadPanel({ selectedFile, onFileChange, onUpload, loading }) {
 
             <div className="upload-section">
                 <button onClick={onUpload} disabled={loading}>
-                    {loading ? "Processing..." : "Upload & Sort"}
+                    {loading ? (
+                        <span className="loading-content">
+                            <span className="spinner"></span>
+                            Processing
+                        </span>
+                    ) : (
+                        "Upload & Sort"
+                    )}
                 </button>
             </div>
         </div>
