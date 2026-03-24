@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import UploadPanel from "./components/UploadPanel";
 import Results from "./components/Results";
 
 function App() {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("sortify-theme") || "light";
+  });
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [responseData, setResponseData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("sortify-theme", theme);
+  }, [theme]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -82,11 +90,26 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"));
+  };
+
   return (
-      <div className="page">
+      <div className={`page theme-${theme}`}>
         <div className="container">
           <div className="hero">
-            <p className="eyebrow">Text organization</p>
+            <div className="hero-top">
+              <p className="eyebrow">Text organization</p>
+
+              <button
+                  type="button"
+                  className="theme-toggle"
+                  onClick={toggleTheme}
+              >
+                {theme === "light" ? "Dark mode" : "Light mode"}
+              </button>
+            </div>
+
             <h1>Sortify</h1>
             <p className="subtitle">
               Upload a text file and organize its lines into clean, structured groups.

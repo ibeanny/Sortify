@@ -1,10 +1,92 @@
+:root {
+  font-family: "Segoe UI", sans-serif;
+}
+
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background:
-          radial-gradient(circle at top, #6d28d9 0%, #1e1b4b 35%, #020617 100%);
-  color: #e9d5ff;
 }
+
+/* ---------------- THEME VARIABLES ---------------- */
+
+.theme-light {
+  --page-bg:
+          radial-gradient(circle at top, #ffffff 0%, #f8fafc 40%, #e2e8f0 100%);
+  --text-main: #111827;
+  --text-soft: #475569;
+  --text-muted: #6b7280;
+  --title-color: #111827;
+
+  --container-bg: rgba(255, 255, 255, 0.88);
+  --container-border: rgba(0, 0, 0, 0.08);
+  --container-shadow: 0 20px 50px rgba(15, 23, 42, 0.14);
+
+  --panel-bg: rgba(248, 250, 252, 0.92);
+  --panel-border: rgba(15, 23, 42, 0.14);
+
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-border: rgba(139, 92, 246, 0.12);
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+  --item-bg: rgba(241, 245, 249, 0.95);
+  --item-border: rgba(148, 163, 184, 0.18);
+
+  --button-text: #ffffff;
+  --button-gradient: linear-gradient(135deg, #111827, #1f2937);
+  --button-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+  --secondary-btn-bg: rgba(0, 0, 0, 0.04);
+  --secondary-btn-border: rgba(0, 0, 0, 0.12);
+  --secondary-btn-text: #111827;
+
+  --json-bg: rgba(241, 245, 249, 0.95);
+  --pre-bg: #e2e8f0;
+  --pre-text: #1e293b;
+
+  --error-color: #dc2626;
+}
+
+.theme-dark {
+  --page-bg:
+          radial-gradient(circle at top, #6d28d9 0%, #1e1b4b 35%, #020617 100%);
+  --text-main: #e9d5ff;
+  --text-soft: #ddd6fe;
+  --text-muted: #c4b5fd;
+  --title-color: #f5f3ff;
+
+  --container-bg: rgba(30, 27, 75, 0.92);
+  --container-border: rgba(167, 139, 250, 0.2);
+  --container-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+
+  --panel-bg: rgba(15, 23, 42, 0.7);
+  --panel-border: rgba(167, 139, 250, 0.2);
+
+  --card-bg: linear-gradient(
+          180deg,
+          rgba(38, 32, 86, 0.96),
+          rgba(38, 32, 86, 0.96)
+  );
+  --card-border: rgba(167, 139, 250, 0.2);
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+  --item-bg: rgba(25, 30, 58, 0.72);
+  --item-border: rgba(167, 139, 250, 0.12);
+
+  --button-text: #1e1b4b;
+  --button-gradient: linear-gradient(135deg, #a78bfa, #7c3aed);
+  --button-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+
+  --secondary-btn-bg: rgba(167, 139, 250, 0.15);
+  --secondary-btn-border: rgba(196, 181, 253, 0.4);
+  --secondary-btn-text: #ede9fe;
+
+  --json-bg: rgba(2, 6, 23, 0.78);
+  --pre-bg: #020617;
+  --pre-text: #ddd6fe;
+
+  --error-color: #fca5a5;
+}
+
+/* ---------------- PAGE ---------------- */
 
 .page {
   min-height: 100vh;
@@ -12,17 +94,21 @@ body {
   align-items: flex-start;
   justify-content: center;
   padding: 48px 16px;
+  background: var(--page-bg);
+  color: var(--text-main);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .container {
   width: 100%;
   max-width: 950px;
-  background: rgba(30, 27, 75, 0.92);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: var(--container-bg);
+  border: 1px solid var(--container-border);
   border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--container-shadow);
   padding: 40px;
   backdrop-filter: blur(10px);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ---------------- HERO ---------------- */
@@ -32,9 +118,17 @@ body {
   margin-bottom: 30px;
 }
 
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
 .eyebrow {
-  margin: 0 0 10px;
-  color: #c4b5fd;
+  margin: 0;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 2px;
   font-size: 0.75rem;
@@ -44,21 +138,41 @@ body {
 .hero h1 {
   margin: 0;
   font-size: 4rem;
-  color: #f5f3ff;
+  color: var(--title-color);
 }
 
 .subtitle {
   margin: 14px auto 0;
   max-width: 560px;
-  color: #ddd6fe;
+  color: var(--text-soft);
   font-size: 1rem;
+}
+
+/* ---------------- THEME TOGGLE ---------------- */
+
+.theme-toggle {
+  margin-top: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--secondary-btn-bg);
+  border: 1px solid var(--secondary-btn-border);
+  color: var(--secondary-btn-text);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: none;
 }
 
 /* ---------------- UPLOAD ---------------- */
 
 .upload-panel {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
   border-radius: 18px;
   padding: 32px 28px;
   margin-bottom: 36px;
@@ -81,9 +195,9 @@ body {
   display: inline-block;
   padding: 12px 20px;
   border-radius: 12px;
-  background: rgba(167, 139, 250, 0.15);
-  border: 1px solid rgba(196, 181, 253, 0.4);
-  color: #ede9fe;
+  background: var(--secondary-btn-bg);
+  border: 1px solid var(--secondary-btn-border);
+  color: var(--secondary-btn-text);
   font-weight: 700;
   cursor: pointer;
   margin-bottom: 12px;
@@ -91,18 +205,17 @@ body {
 }
 
 .file-upload-label:hover {
-  background: rgba(167, 139, 250, 0.25);
   transform: translateY(-1px);
 }
 
 .file-name {
   margin-top: 10px;
   font-size: 0.95rem;
-  color: #ddd6fe;
+  color: var(--text-soft);
 }
 
 .file-name span {
-  color: #f5f3ff;
+  color: var(--title-color);
   font-weight: 700;
 }
 
@@ -112,8 +225,8 @@ button {
   margin-top: 10px;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-  color: #1e1b4b;
+  background: var(--button-gradient);
+  color: var(--button-text);
   font-weight: 800;
   font-size: 1rem;
   padding: 14px 30px;
@@ -123,7 +236,7 @@ button {
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+  box-shadow: var(--button-shadow);
 }
 
 button:disabled {
@@ -137,7 +250,7 @@ button:disabled {
 
 .error {
   margin: 18px 0 0;
-  color: #fca5a5;
+  color: var(--error-color);
   font-weight: 700;
   text-align: center;
 }
@@ -151,11 +264,12 @@ button:disabled {
 .response-box h2 {
   margin: 0 0 22px;
   font-size: 2rem;
-  color: #f5f3ff;
+  color: var(--title-color);
   text-align: center;
 }
 
 /* stats */
+
 .stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(140px, 1fr));
@@ -164,8 +278,8 @@ button:disabled {
 }
 
 .stat-card {
-  background: rgba(2, 6, 23, 0.8);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 22px;
   text-align: center;
@@ -173,7 +287,7 @@ button:disabled {
 
 .stat-label {
   display: block;
-  color: #c4b5fd;
+  color: var(--text-muted);
   font-size: 0.9rem;
   margin-bottom: 8px;
 }
@@ -181,7 +295,7 @@ button:disabled {
 .stat-value {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #f5f3ff;
+  color: var(--title-color);
 }
 
 /* categories */
@@ -192,7 +306,7 @@ button:disabled {
 
 .categories-section h3 {
   margin: 0 0 18px;
-  color: #e9d5ff;
+  color: var(--text-main);
   text-align: center;
   font-size: 1.6rem;
 }
@@ -204,20 +318,16 @@ button:disabled {
 }
 
 .category-card {
-  background: linear-gradient(
-          180deg,
-          rgba(2, 6, 23, 0.9),
-          rgba(30, 27, 75, 0.95)
-  );
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 18px;
   padding: 24px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow: var(--card-shadow);
 }
 
 .category-card h4 {
   margin: 0 0 16px;
-  color: #c4b5fd;
+  color: var(--text-muted);
   font-size: 1.35rem;
   text-align: center;
 }
@@ -232,9 +342,9 @@ button:disabled {
   padding: 10px 14px;
   margin-bottom: 10px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.8);
-  color: #e9d5ff;
-  border: 1px solid rgba(167, 139, 250, 0.08);
+  background: var(--item-bg);
+  color: var(--text-main);
+  border: 1px solid var(--item-border);
 }
 
 /* ---------------- DOWNLOAD BUTTON ---------------- */
@@ -248,20 +358,20 @@ button:disabled {
 
 .raw-json {
   margin-top: 26px;
-  background: rgba(2, 6, 23, 0.78);
+  background: var(--json-bg);
   border-radius: 14px;
   padding: 14px;
 }
 
 .raw-json summary {
   cursor: pointer;
-  color: #c4b5fd;
+  color: var(--text-muted);
   font-weight: 700;
 }
 
 pre {
-  background: #020617;
-  color: #ddd6fe;
+  background: var(--pre-bg);
+  color: var(--pre-text);
   padding: 14px;
   border-radius: 12px;
   overflow-x: auto;
@@ -273,6 +383,11 @@ pre {
 @media (max-width: 700px) {
   .container {
     padding: 24px 18px;
+  }
+
+  .hero-top {
+    flex-direction: column;
+    align-items: center;
   }
 
   .hero h1 {
