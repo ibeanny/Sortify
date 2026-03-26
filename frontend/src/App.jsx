@@ -43,11 +43,18 @@ function App() {
     localStorage.setItem("sortify-theme", theme);
   }, [theme]);
 
-  const handleFileChange = (event) => {
-    const files = Array.from(event.target.files || []);
+  const updateSelectedFiles = (files) => {
     setSelectedFiles(files);
     setResponseData(null);
     setError("");
+  };
+
+  const handleFileChange = (event) => {
+    updateSelectedFiles(Array.from(event.target.files || []));
+  };
+
+  const handleFileDrop = (files) => {
+    updateSelectedFiles(files);
   };
 
   const handleUpload = async () => {
@@ -178,6 +185,7 @@ function App() {
           <UploadPanel
               selectedFiles={selectedFiles}
               onFileChange={handleFileChange}
+              onFileDrop={handleFileDrop}
               onUpload={handleUpload}
               loading={loading}
           />

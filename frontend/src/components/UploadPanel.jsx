@@ -1,6 +1,53 @@
-function UploadPanel({ selectedFiles, onFileChange, onUpload, loading }) {
+import { useState } from "react";
+
+function UploadPanel({ selectedFiles, onFileChange, onFileDrop, onUpload, loading }) {
+    const [isDragging, setIsDragging] = useState(false);
+
+    const stopDragDefaults = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDragEnter = (event) => {
+        stopDragDefaults(event);
+        setIsDragging(true);
+    };
+
+    const handleDragOver = (event) => {
+        stopDragDefaults(event);
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (event) => {
+        stopDragDefaults(event);
+        if (event.currentTarget.contains(event.relatedTarget)) {
+            return;
+        }
+
+        setIsDragging(false);
+    };
+
+    const handleDrop = (event) => {
+        stopDragDefaults(event);
+        setIsDragging(false);
+
+        const files = Array.from(event.dataTransfer?.files || []).filter(
+            (file) => file.name.toLowerCase().endsWith(".txt")
+        );
+
+        if (files.length > 0) {
+            onFileDrop(files);
+        }
+    };
+
     return (
-        <div className="upload-panel">
+        <div
+            className={`upload-panel ${isDragging ? "drag-active" : ""}`}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             <div className="file-section">
                 <label htmlFor="file-upload" className="file-upload-label">
                     Choose Text Files
