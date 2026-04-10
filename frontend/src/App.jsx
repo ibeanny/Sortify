@@ -3,9 +3,24 @@ import "./App.css";
 import UploadPanel from "./components/UploadPanel";
 import Results from "./components/Results";
 
+const CATEGORY_OPTIONS = [
+  "Tasks & Reminders",
+  "Appointments & Schedule",
+  "Contacts",
+  "Travel",
+  "Finance",
+  "Shopping & Orders",
+  "Events & Dates",
+  "Medical",
+  "Legal",
+  "Work & School",
+  "Reference",
+  "Other",
+];
 const RESULTS_CACHE_KEY = "sortify-last-results";
 const REMEMBER_DATA_KEY = "sortify-remember-data";
 const ACCESS_TOKEN_KEY = "sortify-access-token";
+const VISUAL_EFFECTS_KEY = "sortify-visual-effects";
 const FILE_CACHE_DB = "sortify-file-cache";
 const FILE_CACHE_STORE = "uploads";
 const FILE_CACHE_KEY = "selected-files";
@@ -97,6 +112,25 @@ function buildMergedCategories(responseData) {
   return responseData?.combinedCategories || [];
 }
 
+function normalizeResponseData(data) {
+  if (!data?.files?.length) {
+    return data;
+  }
+
+  return {
+    ...data,
+    files: data.files.map((file, fileIndex) => ({
+      ...file,
+      items: (file.items || []).map((item, itemIndex) => ({
+        ...item,
+        clientId:
+          item.clientId ||
+          `${file.fileName || "file"}-${fileIndex}-${itemIndex}-${item.value || "item"}`,
+      })),
+    })),
+  };
+}
+
 function openFileCache() {
   return new Promise((resolve, reject) => {
     const request = window.indexedDB.open(FILE_CACHE_DB, 1);
@@ -169,6 +203,9 @@ function App() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("sortify-theme") || "light";
   });
+  const [visualEffectsEnabled, setVisualEffectsEnabled] = useState(
+      () => localStorage.getItem(VISUAL_EFFECTS_KEY) === "true"
+  );
   const [rememberData, setRememberData] = useState(() => localStorage.getItem(REMEMBER_DATA_KEY) === "true");
   const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem(ACCESS_TOKEN_KEY) || "");
   const [clientConfig, setClientConfig] = useState({
@@ -188,7 +225,7 @@ function App() {
     }
 
     try {
-      return JSON.parse(cachedResults);
+      return normalizeResponseData(JSON.parse(cachedResults));
     } catch {
       return null;
     }
@@ -202,6 +239,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem("sortify-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem(VISUAL_EFFECTS_KEY, String(visualEffectsEnabled));
+  }, [visualEffectsEnabled]);
 
   useEffect(() => {
     let isMounted = true;
@@ -370,7 +411,7 @@ function App() {
       }
 
       const data = await response.json();
-      setResponseData(data);
+      setResponseData(normalizeResponseData(data));
     } catch (err) {
       setError(err.message || "Failed to connect to backend.");
       console.error(err);
@@ -443,8 +484,32 @@ function App() {
 
   const uploadLimitLabel = `Up to ${clientConfig.maxFiles} files, ${formatBytes(clientConfig.maxFileSizeBytes)} each, ${formatBytes(clientConfig.maxTotalUploadBytes)} total.`;
 
+  const handleCategoryChange = (fileName, clientId, nextCategory) => {
+    setResponseData((currentData) => {
+      if (!currentData?.files?.length) {
+        return currentData;
+      }
+
+      return normalizeResponseData({
+        ...currentData,
+        files: currentData.files.map((file) => {
+          if (file.fileName !== fileName) {
+            return file;
+          }
+
+          return {
+            ...file,
+            items: file.items.map((item) =>
+              item.clientId === clientId ? { ...item, category: nextCategory } : item
+            ),
+          };
+        }),
+      });
+    });
+  };
+
   return (
-      <div className={`page theme-${theme}`}>
+      <div className={`page theme-${theme} ${visualEffectsEnabled ? "effects-on" : "effects-off"}`}>
         <div className="container">
           <div className="hero">
             <div className="hero-top">
@@ -468,6 +533,14 @@ function App() {
 
                       <div className="settings-section">
                         <p className="settings-label">Appearance</p>
+                        <div className="settings-row">
+                          <span className="settings-row-label">Current theme</span>
+                          <span className="settings-row-value">{theme === "light" ? "Light" : "Dark"}</span>
+                        </div>
+                        <div className="settings-row">
+                          <span className="settings-row-label">Visual effects</span>
+                          <span className="settings-row-value">{visualEffectsEnabled ? "Enabled" : "Disabled"}</span>
+                        </div>
                         <button
                             type="button"
                             className="settings-chip"
@@ -475,10 +548,24 @@ function App() {
                         >
                           {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
                         </button>
+                        <button
+                            type="button"
+                            className="settings-chip"
+                            onClick={() => setVisualEffectsEnabled((enabled) => !enabled)}
+                        >
+                          {visualEffectsEnabled ? "Turn Off Visual Effects" : "Turn On Visual Effects"}
+                        </button>
+                        <p className="settings-note">
+                          Leave this off for the fastest scrolling and the simplest layout rendering.
+                        </p>
                       </div>
 
                       <div className="settings-section">
                         <p className="settings-label">Privacy</p>
+                        <div className="settings-row">
+                          <span className="settings-row-label">Browser storage</span>
+                          <span className="settings-row-value">{rememberData ? "Enabled" : "Disabled"}</span>
+                        </div>
                         <label className="remember-toggle">
                           <input
                               type="checkbox"
@@ -490,11 +577,22 @@ function App() {
                         <p className="privacy-note">
                           Leave this off for medical, legal, or other sensitive files.
                         </p>
+                        <button
+                            type="button"
+                            className="settings-chip settings-chip-secondary"
+                            onClick={handleClearCachedSession}
+                        >
+                          Clear saved files and results
+                        </button>
                       </div>
 
                       {clientConfig.accessTokenRequired && (
                           <div className="settings-section">
                             <p className="settings-label">Access</p>
+                            <div className="settings-row">
+                              <span className="settings-row-label">Protection</span>
+                              <span className="settings-row-value">Required</span>
+                            </div>
                             <div className="access-token-field">
                               <label htmlFor="sortify-access-token">Access token</label>
                               <input
@@ -511,7 +609,31 @@ function App() {
 
                       <div className="settings-section">
                         <p className="settings-label">Limits</p>
+                        <div className="settings-row">
+                          <span className="settings-row-label">Uploads</span>
+                          <span className="settings-row-value">{clientConfig.maxFiles} files max</span>
+                        </div>
+                        <div className="settings-row">
+                          <span className="settings-row-label">Per file</span>
+                          <span className="settings-row-value">{formatBytes(clientConfig.maxFileSizeBytes)}</span>
+                        </div>
+                        <div className="settings-row">
+                          <span className="settings-row-label">Total</span>
+                          <span className="settings-row-value">{formatBytes(clientConfig.maxTotalUploadBytes)}</span>
+                        </div>
                         <p className="settings-note">{uploadLimitLabel}</p>
+                      </div>
+
+                      <div className="settings-section">
+                        <p className="settings-label">About</p>
+                        <div className="settings-row">
+                          <span className="settings-row-label">App</span>
+                          <span className="settings-row-value">Sortify local build</span>
+                        </div>
+                        <div className="settings-row">
+                          <span className="settings-row-label">Purpose</span>
+                          <span className="settings-row-value">AI text organization</span>
+                        </div>
                       </div>
 
                       <p className="settings-footer">made with {"<3"} by Elvis :)</p>
@@ -531,7 +653,6 @@ function App() {
               onFileChange={handleFileChange}
               onFileDrop={handleFileDrop}
               onUpload={handleUpload}
-              onClearCachedSession={handleClearCachedSession}
               uploadLimitLabel={uploadLimitLabel}
               loading={loading}
           />
@@ -540,6 +661,8 @@ function App() {
 
           <Results
               data={responseData ? { ...responseData, combinedCategories: mergedCategories } : responseData}
+              categoryOptions={CATEGORY_OPTIONS}
+              onCategoryChange={handleCategoryChange}
               onDownloadTxt={handleDownloadTxt}
               onDownloadPerFileTxt={handleDownloadPerFileTxt}
               onDownloadSingleFileTxt={handleDownloadSingleFileTxt}

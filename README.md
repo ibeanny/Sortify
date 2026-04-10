@@ -12,9 +12,11 @@ Upload one or more messy `.txt` files, and Sortify analyzes and structures the c
 - Generates structured and readable results per file
 - Builds one combined result across all uploaded files
 - Download one sorted `.txt` per uploaded file or one combined export
-- Gear-based settings panel for theme, privacy, and access options
+- Gear-based settings panel for theme, privacy, access options, and optional visual effects
 - Clean output formatting
 - Expand or collapse each file result and the combined result
+- Search across sorted categories and lines
+- Edit line categories after sorting without re-uploading files
 - Real-time processing through a full-stack system
 - Upload limits to protect the backend and API usage
 - Optional browser-side persistence instead of always caching sensitive files
@@ -29,7 +31,7 @@ Upload one or more messy `.txt` files, and Sortify analyzes and structures the c
 5. The backend validates the AI output against a fixed category schema
 6. The results are grouped into structured sections for each file
 7. The frontend also builds a combined grouped view across all uploaded files
-8. The user can expand, collapse, and download the organized output
+8. The user can search, expand, collapse, edit categories, and download the organized output
 
 ## Tech Stack
 
@@ -96,11 +98,16 @@ Open the Vite app in your browser and:
 - choose multiple `.txt` files from the picker, or
 - drag and drop multiple `.txt` files into the upload panel
 - optionally open the settings panel to enable "Remember files and results on this browser" if the files are not sensitive
+- optionally turn on decorative visual effects in settings
+- use the search bar to filter categories or lines in the results
+- use "Edit Categories" to reassign lines after sorting if needed
 
 After processing, Sortify shows:
 
 - one collapsible result box per file
 - one final combined result box for all uploaded files
+- a search field for filtering the results view
+- an edit mode for changing categories after sorting
 - a button to download one sorted `.txt` per uploaded file
 - a button to download one combined `.txt`
 
