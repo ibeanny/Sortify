@@ -12,9 +12,13 @@ Upload one or more messy `.txt` files, and Sortify analyzes and structures the c
 - Generates structured and readable results per file
 - Builds one combined result across all uploaded files
 - Download one sorted `.txt` per uploaded file or one combined export
+- Gear-based settings panel for theme, privacy, and access options
 - Clean output formatting
 - Expand or collapse each file result and the combined result
 - Real-time processing through a full-stack system
+- Upload limits to protect the backend and API usage
+- Optional browser-side persistence instead of always caching sensitive files
+- Optional access token protection for local/private deployments
 
 ## How It Works
 
@@ -22,9 +26,10 @@ Upload one or more messy `.txt` files, and Sortify analyzes and structures the c
 2. The files are sent to a Spring Boot backend via an API
 3. The backend processes each file line-by-line
 4. Each line is analyzed and categorized using OpenAI
-5. The results are grouped into structured sections for each file
-6. The frontend also builds a combined grouped view across all uploaded files
-7. The user can expand, collapse, and download the organized output
+5. The backend validates the AI output against a fixed category schema
+6. The results are grouped into structured sections for each file
+7. The frontend also builds a combined grouped view across all uploaded files
+8. The user can expand, collapse, and download the organized output
 
 ## Tech Stack
 
@@ -66,6 +71,12 @@ Add:
 
 spring.application.name=aisorter
 openai.api.key=${OPENAI_API_KEY}
+sortify.upload.max-files=10
+sortify.upload.max-file-size-bytes=1048576
+sortify.upload.max-total-upload-bytes=4194304
+sortify.security.access-token=${SORTIFY_ACCESS_TOKEN:}
+
+`SORTIFY_ACCESS_TOKEN` is optional. If set, the web app will ask for it before uploads and processing.
 
 ### Run Backend
 
@@ -84,6 +95,7 @@ Open the Vite app in your browser and:
 
 - choose multiple `.txt` files from the picker, or
 - drag and drop multiple `.txt` files into the upload panel
+- optionally open the settings panel to enable "Remember files and results on this browser" if the files are not sensitive
 
 After processing, Sortify shows:
 
@@ -92,11 +104,19 @@ After processing, Sortify shows:
 - a button to download one sorted `.txt` per uploaded file
 - a button to download one combined `.txt`
 
+## Security Notes
+
+- Uploaded text is sent to OpenAI for classification
+- Browser-side file/result persistence is opt-in, not automatic
+- You can require a local access token with `SORTIFY_ACCESS_TOKEN`
+- The backend enforces file-count and upload-size limits
+- The backend validates AI categories against a fixed schema before returning results
+
 ## Future Improvements
 
 - Enhance UI/UX design
 - Support additional file formats
-- Add user authentication
+- Add stronger user authentication for multi-user deployments
 
 ## Author
 

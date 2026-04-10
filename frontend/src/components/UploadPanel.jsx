@@ -1,7 +1,16 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-function UploadPanel({ selectedFiles, onFileChange, onFileDrop, onUpload, loading }) {
+function UploadPanel({
+    selectedFiles,
+    onFileChange,
+    onFileDrop,
+    onUpload,
+    onClearCachedSession,
+    uploadLimitLabel,
+    loading,
+}) {
     const [isDragging, setIsDragging] = useState(false);
+    const fileInputRef = useRef(null);
 
     const stopDragDefaults = (event) => {
         event.preventDefault();
@@ -37,6 +46,25 @@ function UploadPanel({ selectedFiles, onFileChange, onFileDrop, onUpload, loadin
 
         if (files.length > 0) {
             onFileDrop(files);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+        }
+    };
+
+    const handleInputClick = (event) => {
+        event.target.value = "";
+    };
+
+    const handleInputChange = (event) => {
+        onFileChange(event);
+        event.target.value = "";
+    };
+
+    const handleClearClick = async () => {
+        await onClearCachedSession();
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
         }
     };
 
@@ -49,16 +77,20 @@ function UploadPanel({ selectedFiles, onFileChange, onFileDrop, onUpload, loadin
             onDrop={handleDrop}
         >
             <div className="file-section">
+                <p className="upload-guidance">{uploadLimitLabel}</p>
+
                 <label htmlFor="file-upload" className="file-upload-label">
                     Choose Text Files
                 </label>
 
                 <input
+                    ref={fileInputRef}
                     id="file-upload"
                     type="file"
                     accept=".txt"
                     multiple
-                    onChange={onFileChange}
+                    onClick={handleInputClick}
+                    onChange={handleInputChange}
                     className="file-input"
                 />
 
@@ -88,6 +120,17 @@ function UploadPanel({ selectedFiles, onFileChange, onFileDrop, onUpload, loadin
                         "Upload & Sort"
                     )}
                 </button>
+
+                {selectedFiles.length > 0 && (
+                    <button
+                        type="button"
+                        className="clear-button"
+                        onClick={handleClearClick}
+                        disabled={loading || selectedFiles.length === 0}
+                    >
+                        Clear Files
+                    </button>
+                )}
             </div>
         </div>
     );
