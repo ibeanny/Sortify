@@ -128,12 +128,6 @@ public class OpenAiService {
     }
 
     private HttpStatus mapUpstreamStatus(int upstreamStatus) {
-        if (upstreamStatus == 401 || upstreamStatus == 403) {
-            return HttpStatus.BAD_GATEWAY;
-        }
-        if (upstreamStatus == 408 || upstreamStatus == 429 || upstreamStatus >= 500) {
-            return HttpStatus.BAD_GATEWAY;
-        }
         return HttpStatus.BAD_GATEWAY;
     }
 
