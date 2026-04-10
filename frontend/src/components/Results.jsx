@@ -1,16 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-
-function groupItemsByCategory(items = []) {
-    return items.reduce((groups, item) => {
-        const category = item.category || "Uncategorized";
-        if (!groups[category]) {
-            groups[category] = [];
-        }
-
-        groups[category].push(item);
-        return groups;
-    }, {});
-}
+import { groupItemsByCategory } from "../utils/results";
 
 function matchesSearch(item, query) {
     if (!query) {
@@ -138,28 +127,34 @@ function Results({
                                             <div className="file-category-group" key={`${file.fileName}-${category}`}>
                                                 <h5>{category}</h5>
                                                 <ul>
-                                                    {values.map((item) => (
-                                                        <li key={item.clientId} className="editable-line-item">
-                                                            <span className="line-item-text">{item.value}</span>
-                                                            {isEditMode && (
-                                                                <label className="line-item-category">
-                                                                    <span>Category</span>
-                                                                    <select
-                                                                        value={item.category}
-                                                                        onChange={(event) =>
-                                                                            onCategoryChange(file.fileName, item.clientId, event.target.value)
-                                                                        }
-                                                                    >
-                                                                        {categoryOptions.map((option) => (
-                                                                            <option key={option} value={option}>
-                                                                                {option}
-                                                                            </option>
-                                                                        ))}
-                                                                    </select>
-                                                                </label>
-                                                            )}
-                                                        </li>
-                                                    ))}
+                                                    {values.map((item) => {
+                                                        const selectOptions = categoryOptions.includes(item.category)
+                                                            ? categoryOptions
+                                                            : [item.category, ...categoryOptions];
+
+                                                        return (
+                                                            <li key={item.clientId} className="editable-line-item">
+                                                                <span className="line-item-text">{item.value}</span>
+                                                                {isEditMode && (
+                                                                    <label className="line-item-category">
+                                                                        <span>Category</span>
+                                                                        <select
+                                                                            value={item.category}
+                                                                            onChange={(event) =>
+                                                                                onCategoryChange(file.fileName, item.clientId, event.target.value)
+                                                                            }
+                                                                        >
+                                                                            {selectOptions.map((option) => (
+                                                                                <option key={option} value={option}>
+                                                                                    {option}
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </label>
+                                                                )}
+                                                            </li>
+                                                        );
+                                                    })}
                                                 </ul>
                                             </div>
                                         ))}
