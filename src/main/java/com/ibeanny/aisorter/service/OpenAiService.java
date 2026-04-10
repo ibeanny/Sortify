@@ -25,9 +25,11 @@ public class OpenAiService {
     private final OpenAiConfig config;
     private final HttpClient client;
     private final ObjectMapper objectMapper;
+    private final CategorySchema categorySchema;
 
-    public OpenAiService(OpenAiConfig config) {
+    public OpenAiService(OpenAiConfig config, CategorySchema categorySchema) {
         this.config = config;
+        this.categorySchema = categorySchema;
         this.client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(20))
                 .build();
@@ -49,28 +51,20 @@ public class OpenAiService {
         The file may contain mixed content such as tasks, schedules, contacts, finances, shopping lists, medical notes, legal records, travel details, work notes, school notes, and general reference text.
 
         You must assign every line to exactly one of these allowed categories:
-        - Tasks & Reminders
-        - Appointments & Schedule
-        - Contacts
-        - Travel
-        - Finance
-        - Shopping & Orders
-        - Events & Dates
-        - Medical
-        - Legal
-        - Work & School
-        - Reference
-        - Other
+        %s
 
         Instructions:
         1. Read all lines carefully.
         2. Use only the allowed categories listed above.
         3. Do not invent new category names.
         4. Pick the single best category for each line.
-        5. Use "Reference" for factual identifiers or structured details that do not fit a more specific category.
-        6. Use "Other" only when no listed category fits reasonably well.
-        7. Return ONLY valid JSON.
-        8. Do not include markdown, code fences, explanations, or extra text.
+        5. Return exactly one JSON item for each input line.
+        6. Keep the output items in the same order as the input lines.
+        7. Copy each "value" exactly from the original input line with no rewriting.
+        8. Use "Reference" for factual identifiers or structured details that do not fit a more specific category.
+        9. Use "Other" only when no listed category fits reasonably well.
+        10. Return ONLY valid JSON.
+        11. Do not include markdown, code fences, explanations, or extra text.
 
         Return this exact JSON format:
         [
@@ -82,7 +76,7 @@ public class OpenAiService {
 
         Lines:
         %s
-        """.formatted(joinedLines);
+        """.formatted(categorySchema.toPromptList(), joinedLines);
 
         return sendResponsesRequest(prompt);
     }

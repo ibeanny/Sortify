@@ -67,4 +67,17 @@ class UploadValidationServiceTest {
 
         assertDoesNotThrow(() -> service.validateFiles(new MockMultipartFile[]{file}));
     }
+
+    @Test
+    void validateFilesRejectsNonTxtFile() {
+        UploadValidationService service = new UploadValidationService(new UploadLimitsProperties());
+        MockMultipartFile file = new MockMultipartFile("files", "one.csv", "text/csv", "hello".getBytes());
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.validateFiles(new MockMultipartFile[]{file})
+        );
+
+        assertEquals("Only .txt files are allowed.", exception.getMessage());
+    }
 }

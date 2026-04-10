@@ -3,6 +3,7 @@ package com.ibeanny.aisorter.controller;
 import com.ibeanny.aisorter.config.SortifyAccessTokenInterceptor;
 import com.ibeanny.aisorter.config.SortifySecurityProperties;
 import com.ibeanny.aisorter.config.UploadLimitsProperties;
+import com.ibeanny.aisorter.service.CategorySchema;
 import com.ibeanny.aisorter.service.DocumentProcessingService;
 import com.ibeanny.aisorter.service.FileProcessingService;
 import com.ibeanny.aisorter.service.OpenAiService;
@@ -38,7 +39,8 @@ class FileControllerTest {
                 openAiService,
                 documentProcessingService,
                 securityProperties,
-                uploadLimitsProperties
+                uploadLimitsProperties,
+                new CategorySchema()
         );
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
@@ -65,7 +67,8 @@ class FileControllerTest {
                 openAiService,
                 documentProcessingService,
                 securityProperties,
-                uploadLimitsProperties
+                uploadLimitsProperties,
+                new CategorySchema()
         );
 
         SortifyAccessTokenInterceptor interceptor = new SortifyAccessTokenInterceptor(securityProperties);
@@ -84,5 +87,29 @@ class FileControllerTest {
                                 .header(SortifyAccessTokenInterceptor.ACCESS_TOKEN_HEADER, "secret-token")
                 )
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void clientConfigReturnsAllowedCategories() throws Exception {
+        FileProcessingService fileProcessingService = mock(FileProcessingService.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        DocumentProcessingService documentProcessingService = mock(DocumentProcessingService.class);
+        SortifySecurityProperties securityProperties = new SortifySecurityProperties();
+        UploadLimitsProperties uploadLimitsProperties = new UploadLimitsProperties();
+
+        FileController controller = new FileController(
+                fileProcessingService,
+                openAiService,
+                documentProcessingService,
+                securityProperties,
+                uploadLimitsProperties,
+                new CategorySchema()
+        );
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/files/client-config"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.allowedCategories[0]").value("Tasks & Reminders"));
     }
 }

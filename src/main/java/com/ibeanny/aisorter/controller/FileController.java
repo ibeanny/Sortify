@@ -7,6 +7,7 @@ import com.ibeanny.aisorter.model.ApiErrorResponse;
 import com.ibeanny.aisorter.model.ClientConfigResponse;
 import com.ibeanny.aisorter.model.ProcessResponse;
 import com.ibeanny.aisorter.model.UploadResponse;
+import com.ibeanny.aisorter.service.CategorySchema;
 import com.ibeanny.aisorter.service.DocumentProcessingService;
 import com.ibeanny.aisorter.service.FileProcessingService;
 import com.ibeanny.aisorter.service.OpenAiService;
@@ -23,17 +24,20 @@ public class FileController {
     private final DocumentProcessingService documentProcessingService;
     private final SortifySecurityProperties securityProperties;
     private final UploadLimitsProperties uploadLimitsProperties;
+    private final CategorySchema categorySchema;
 
     public FileController(FileProcessingService fileProcessingService,
                           OpenAiService openAiService,
                           DocumentProcessingService documentProcessingService,
                           SortifySecurityProperties securityProperties,
-                          UploadLimitsProperties uploadLimitsProperties) {
+                          UploadLimitsProperties uploadLimitsProperties,
+                          CategorySchema categorySchema) {
         this.fileProcessingService = fileProcessingService;
         this.openAiService = openAiService;
         this.documentProcessingService = documentProcessingService;
         this.securityProperties = securityProperties;
         this.uploadLimitsProperties = uploadLimitsProperties;
+        this.categorySchema = categorySchema;
     }
 
     @GetMapping("/client-config")
@@ -42,7 +46,8 @@ public class FileController {
                 securityProperties.isAccessTokenRequired(),
                 uploadLimitsProperties.getMaxFiles(),
                 uploadLimitsProperties.getMaxFileSizeBytes(),
-                uploadLimitsProperties.getMaxTotalUploadBytes()
+                uploadLimitsProperties.getMaxTotalUploadBytes(),
+                categorySchema.getAllowedCategories()
         ));
     }
 

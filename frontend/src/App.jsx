@@ -2,202 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import UploadPanel from "./components/UploadPanel";
 import Results from "./components/Results";
-
-const CATEGORY_OPTIONS = [
-  "Tasks & Reminders",
-  "Appointments & Schedule",
-  "Contacts",
-  "Travel",
-  "Finance",
-  "Shopping & Orders",
-  "Events & Dates",
-  "Medical",
-  "Legal",
-  "Work & School",
-  "Reference",
-  "Other",
-];
+import { clearCachedFiles, loadCachedFiles, saveCachedFiles } from "./utils/fileCache";
+import {
+  buildMergedCategories,
+  buildPerFileDownloadName,
+  buildPerFileTextContent,
+  downloadTextFile,
+  formatBytes,
+  normalizeResponseData,
+} from "./utils/results";
 const RESULTS_CACHE_KEY = "sortify-last-results";
 const REMEMBER_DATA_KEY = "sortify-remember-data";
 const ACCESS_TOKEN_KEY = "sortify-access-token";
 const VISUAL_EFFECTS_KEY = "sortify-visual-effects";
-const FILE_CACHE_DB = "sortify-file-cache";
-const FILE_CACHE_STORE = "uploads";
-const FILE_CACHE_KEY = "selected-files";
-
-function formatBytes(bytes) {
-  if (!bytes && bytes !== 0) {
-    return "";
-  }
-  if (bytes >= 1024 * 1024) {
-    return `${Math.round(bytes / (1024 * 1024))} MB`;
-  }
-  if (bytes >= 1024) {
-    return `${Math.round(bytes / 1024)} KB`;
-  }
-  return `${bytes} bytes`;
-}
-
-function groupItemsByCategory(items = []) {
-  return items.reduce((groups, item) => {
-    const category = item.category || "Uncategorized";
-    if (!groups[category]) {
-      groups[category] = [];
-    }
-
-    groups[category].push(item.value);
-    return groups;
-  }, {});
-}
-
-function downloadTextFile(filename, content) {
-  const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  URL.revokeObjectURL(url);
-}
-
-function buildPerFileTextContent(file) {
-  const groupedItems = groupItemsByCategory(file.items);
-  let textContent = `${file.fileName}\n`;
-  textContent += `${"=".repeat(file.fileName.length)}\n\n`;
-
-  Object.entries(groupedItems).forEach(([category, values]) => {
-    textContent += `${category}\n`;
-    textContent += `${"-".repeat(category.length)}\n`;
-
-    values.forEach((value) => {
-      textContent += `- ${value}\n`;
-    });
-
-    textContent += `\n`;
-  });
-
-  return textContent;
-}
-
-function buildPerFileDownloadName(fileName) {
-  return fileName.replace(/\.txt$/i, "") + "-sorted.txt";
-}
-
-function buildMergedCategories(responseData) {
-  if (responseData?.files?.length) {
-    const grouped = new Map();
-
-    responseData.files.forEach((file) => {
-      file.items?.forEach((item) => {
-        const category = item.category || "Other";
-
-        if (!grouped.has(category)) {
-          grouped.set(category, []);
-        }
-
-        grouped.get(category).push(item.value);
-      });
-    });
-
-    return Array.from(grouped.entries()).map(([key, values]) => ({
-      category: key,
-      values,
-    }));
-  }
-
-  return responseData?.combinedCategories || [];
-}
-
-function normalizeResponseData(data) {
-  if (!data?.files?.length) {
-    return data;
-  }
-
-  return {
-    ...data,
-    files: data.files.map((file, fileIndex) => ({
-      ...file,
-      items: (file.items || []).map((item, itemIndex) => ({
-        ...item,
-        clientId:
-          item.clientId ||
-          `${file.fileName || "file"}-${fileIndex}-${itemIndex}-${item.value || "item"}`,
-      })),
-    })),
-  };
-}
-
-function openFileCache() {
-  return new Promise((resolve, reject) => {
-    const request = window.indexedDB.open(FILE_CACHE_DB, 1);
-
-    request.onupgradeneeded = () => {
-      const database = request.result;
-      if (!database.objectStoreNames.contains(FILE_CACHE_STORE)) {
-        database.createObjectStore(FILE_CACHE_STORE, { keyPath: "id" });
-      }
-    };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function saveCachedFiles(files) {
-  if (!window.indexedDB) {
-    return;
-  }
-
-  const database = await openFileCache();
-
-  await new Promise((resolve, reject) => {
-    const transaction = database.transaction(FILE_CACHE_STORE, "readwrite");
-    transaction.objectStore(FILE_CACHE_STORE).put({ id: FILE_CACHE_KEY, files });
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
-
-  database.close();
-}
-
-async function loadCachedFiles() {
-  if (!window.indexedDB) {
-    return [];
-  }
-
-  const database = await openFileCache();
-
-  const result = await new Promise((resolve, reject) => {
-    const transaction = database.transaction(FILE_CACHE_STORE, "readonly");
-    const request = transaction.objectStore(FILE_CACHE_STORE).get(FILE_CACHE_KEY);
-    request.onsuccess = () => resolve(request.result?.files || []);
-    request.onerror = () => reject(request.error);
-  });
-
-  database.close();
-  return result;
-}
-
-async function clearCachedFiles() {
-  if (!window.indexedDB) {
-    return;
-  }
-
-  const database = await openFileCache();
-
-  await new Promise((resolve, reject) => {
-    const transaction = database.transaction(FILE_CACHE_STORE, "readwrite");
-    transaction.objectStore(FILE_CACHE_STORE).delete(FILE_CACHE_KEY);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
-
-  database.close();
-}
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -213,6 +30,7 @@ function App() {
     maxFiles: 10,
     maxFileSizeBytes: 1024 * 1024,
     maxTotalUploadBytes: 4 * 1024 * 1024,
+    allowedCategories: [],
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [responseData, setResponseData] = useState(() => {
@@ -256,7 +74,11 @@ function App() {
       })
       .then((config) => {
         if (isMounted) {
-          setClientConfig(config);
+          setClientConfig((currentConfig) => ({
+            ...currentConfig,
+            ...config,
+            allowedCategories: config.allowedCategories || currentConfig.allowedCategories,
+          }));
         }
       })
       .catch(() => {
@@ -301,6 +123,16 @@ function App() {
 
     localStorage.removeItem(RESULTS_CACHE_KEY);
   }, [responseData, rememberData]);
+
+  useEffect(() => {
+    if (!rememberData) {
+      return;
+    }
+
+    saveCachedFiles(selectedFiles).catch(() => {
+      // Ignore file cache failures; in-memory data still works for the current session.
+    });
+  }, [selectedFiles, rememberData]);
 
   useEffect(() => {
     localStorage.setItem(REMEMBER_DATA_KEY, String(rememberData));
@@ -354,12 +186,6 @@ function App() {
       setResponseData(null);
     }
     setError("");
-
-    if (rememberData) {
-      saveCachedFiles(files).catch(() => {
-        // Ignore file cache failures; selection still works for the current session.
-      });
-    }
   };
 
   const handleFileChange = (event) => {
@@ -661,7 +487,7 @@ function App() {
 
           <Results
               data={responseData ? { ...responseData, combinedCategories: mergedCategories } : responseData}
-              categoryOptions={CATEGORY_OPTIONS}
+              categoryOptions={clientConfig.allowedCategories}
               onCategoryChange={handleCategoryChange}
               onDownloadTxt={handleDownloadTxt}
               onDownloadPerFileTxt={handleDownloadPerFileTxt}
