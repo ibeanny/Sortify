@@ -12,8 +12,15 @@ import java.util.List;
 
 @Service
 public class FileProcessingService {
+    private final UploadValidationService uploadValidationService;
+
+    public FileProcessingService(UploadValidationService uploadValidationService) {
+        this.uploadValidationService = uploadValidationService;
+    }
 
     public UploadResponse processFiles(MultipartFile[] files) throws IOException {
+        uploadValidationService.validateFiles(files);
+
         List<UploadedFileResult> results = new ArrayList<>();
         int totalLines = 0;
 

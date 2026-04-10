@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 function groupItemsByCategory(items = []) {
     return items.reduce((groups, item) => {
         const category = item.category || "Uncategorized";
@@ -10,7 +12,38 @@ function groupItemsByCategory(items = []) {
     }, {});
 }
 
-function Results({ data, onDownloadTxt, onDownloadPerFileTxt }) {
+function Results({ data, onDownloadTxt, onDownloadPerFileTxt, onDownloadSingleFileTxt }) {
+    const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
+    const downloadMenuRef = useRef(null);
+
+    useEffect(() => {
+        if (!isDownloadMenuOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event) => {
+            if (!downloadMenuRef.current?.contains(event.target)) {
+                setIsDownloadMenuOpen(false);
+            }
+        };
+
+        const handleEscape = (event) => {
+            if (event.key === "Escape") {
+                setIsDownloadMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("contextmenu", handlePointerDown);
+        document.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("contextmenu", handlePointerDown);
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [isDownloadMenuOpen]);
+
     if (!data) return null;
 
     const simplifiedJson = {
@@ -86,10 +119,50 @@ function Results({ data, onDownloadTxt, onDownloadPerFileTxt }) {
             )}
 
             <div className="results-actions">
-                <button type="button" onClick={onDownloadPerFileTxt}>
-                    Download One TXT Per File
-                </button>
-                <button onClick={onDownloadTxt}>Download TXT</button>
+                {data.files?.length > 0 && (
+                    <div
+                        className={`download-menu ${isDownloadMenuOpen ? "open" : ""}`}
+                        ref={downloadMenuRef}
+                    >
+                        <button
+                            type="button"
+                            className="download-menu-summary"
+                            onClick={() => setIsDownloadMenuOpen((open) => !open)}
+                            aria-expanded={isDownloadMenuOpen}
+                            aria-haspopup="true"
+                        >
+                            <span>Download Individual Files</span>
+                        </button>
+                        {isDownloadMenuOpen && (
+                            <div className="download-menu-content">
+                            {data.files.map((file) => (
+                                <button
+                                    key={file.fileName}
+                                    type="button"
+                                    className="download-menu-button"
+                                    onClick={() => {
+                                        onDownloadSingleFileTxt(file);
+                                        setIsDownloadMenuOpen(false);
+                                    }}
+                                >
+                                    {file.fileName}
+                                </button>
+                            ))}
+                            <button
+                                type="button"
+                                className="download-menu-button download-menu-button-all"
+                                onClick={() => {
+                                    onDownloadPerFileTxt();
+                                    setIsDownloadMenuOpen(false);
+                                }}
+                            >
+                                Download All Individual Files
+                            </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <button className="download-merged-button" onClick={onDownloadTxt}>Download Merged TXT</button>
             </div>
 
             <details className="raw-json">

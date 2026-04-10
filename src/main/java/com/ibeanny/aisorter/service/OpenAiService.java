@@ -44,24 +44,38 @@ public class OpenAiService {
         String prompt = """
         You are a smart document organizer.
 
-        Your job is to read lines from a text file and group them into meaningful categories based on their content.
+        Your job is to classify each line into one stable category from a fixed schema.
 
-        The file may contain anything, such as legal records, medical notes, orders, personal information, business text, academic notes, or mixed structured text.
+        The file may contain mixed content such as tasks, schedules, contacts, finances, shopping lists, medical notes, legal records, travel details, work notes, school notes, and general reference text.
+
+        You must assign every line to exactly one of these allowed categories:
+        - Tasks & Reminders
+        - Appointments & Schedule
+        - Contacts
+        - Travel
+        - Finance
+        - Shopping & Orders
+        - Events & Dates
+        - Medical
+        - Legal
+        - Work & School
+        - Reference
+        - Other
 
         Instructions:
         1. Read all lines carefully.
-        2. Create short, useful, human-readable category names based on the actual content.
-        3. Assign every line to the single best category.
-        4. Reuse categories when multiple lines belong together.
-        5. Do not create one category per line unless absolutely necessary.
-        6. Keep category names concise and meaningful.
+        2. Use only the allowed categories listed above.
+        3. Do not invent new category names.
+        4. Pick the single best category for each line.
+        5. Use "Reference" for factual identifiers or structured details that do not fit a more specific category.
+        6. Use "Other" only when no listed category fits reasonably well.
         7. Return ONLY valid JSON.
         8. Do not include markdown, code fences, explanations, or extra text.
 
         Return this exact JSON format:
         [
           {
-            "category": "Category Name",
+            "category": "One allowed category exactly as written above",
             "value": "Original line here"
           }
         ]
