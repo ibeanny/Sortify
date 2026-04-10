@@ -5,7 +5,6 @@ function UploadPanel({
     onFileChange,
     onFileDrop,
     onUpload,
-    onClearCachedSession,
     uploadLimitLabel,
     loading,
 }) {
@@ -61,13 +60,6 @@ function UploadPanel({
         event.target.value = "";
     };
 
-    const handleClearClick = async () => {
-        await onClearCachedSession();
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-    };
-
     return (
         <div
             className={`upload-panel ${isDragging ? "drag-active" : ""}`}
@@ -120,17 +112,6 @@ function UploadPanel({
                         "Upload & Sort"
                     )}
                 </button>
-
-                {selectedFiles.length > 0 && (
-                    <button
-                        type="button"
-                        className="clear-button"
-                        onClick={handleClearClick}
-                        disabled={loading || selectedFiles.length === 0}
-                    >
-                        Clear Files
-                    </button>
-                )}
             </div>
         </div>
     );
