@@ -39,3 +39,6 @@ out/
 ### Local config ###
 src/main/resources/application.properties
 .gradle-home/
+frontend/.npm-cache/
+qodana.sarif.json
+qodana.yaml
